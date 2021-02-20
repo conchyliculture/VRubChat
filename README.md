@@ -6,7 +6,7 @@ You'll probably need to `apt install ruby-curb` first.
 
 Copy `config.json.template` into `config.json` and add your credentials.
 
-Just run `ruby vrubchat.py` to see if any of your friends are online on VRChat.
+Just run `ruby vrubchat.rb` to see if any of your friends are online on VRChat.
 
 ## Troubleshoot
 
