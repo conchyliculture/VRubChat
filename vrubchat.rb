@@ -3,8 +3,7 @@ require "curb"
 require "json"
 require "thread"
 
-$API_KEY = "JlE5Jldo5Jibnk5O5hTx6XVqsJu4WJ26"
-$CONFIG_FILE = "config.json"
+$CONFIG_FILE = File.join(__dir__, "config.json")
 
 
 if not File.exist?($CONFIG_FILE)
@@ -15,18 +14,18 @@ class VRubChat
 
   def get_creds(config_file)
     j = JSON.parse(File.read(config_file))
-    return j["auth"]["username"], j["auth"]["password"]
+    return j["auth"]["username"], j["auth"]["password"], j["apikey"]
   end
 
   attr_accessor :friends
   def initialize(config_file)
-    @username, @password = get_creds($CONFIG_FILE)
+    @username, @password, @apikey = get_creds($CONFIG_FILE)
     @logged_in = false
   end
 
   def login()
     return if @logged_in
-    c = Curl.get("https://vrchat.com/api/1/auth/user?apiKey=#{$API_KEY}")
+    c = Curl.get("https://vrchat.com/api/1/auth/user?apiKey=#{@apikey}")
     c.http_auth_types = :basic
     c.username = @username
     c.password = @password
@@ -46,7 +45,7 @@ class VRubChat
 
   def user_info(user_id)
     login() unless @logged_in
-    c = Curl.get("https://vrchat.com/api/1/users/#{user_id}?apiKey=#{$API_KEY}&userId=#{user_id}")
+    c = Curl.get("https://vrchat.com/api/1/users/#{user_id}?apiKey=#{@apikey}&userId=#{user_id}")
     c.set(:HTTP_VERSION, Curl::HTTP_2_0)                                                                                                       
     c.headers['Cookie'] = @cookies.join('; ')
     c.perform 
