@@ -5,6 +5,8 @@ require "thread"
 
 $CONFIG_FILE = File.join(__dir__, "config.json")
 
+$USER_AGENT = 'Something'
+
 
 if not File.exist?($CONFIG_FILE)
   raise Exception.new("please copy config.json.template to config.json and fill it to your needs")
@@ -31,6 +33,7 @@ class VRubChat
     c.password = @password
     #c.verbose = true
     c.set(:HTTP_VERSION, Curl::HTTP_2_0)                                                                                                       
+    c.headers["User-Agent"] = $USER_AGENT
     c.perform 
     _, *http_headers = c.header_str.split(/[\r\n]+/).map(&:strip)                                                                       
     @cookies = http_headers.map{|x| x[/set-cookie: ([^;]+); Path=\//i,1]}.compact
@@ -46,6 +49,7 @@ class VRubChat
   def user_info(user_id)
     login() unless @logged_in
     c = Curl.get("https://vrchat.com/api/1/users/#{user_id}?apiKey=#{@apikey}&userId=#{user_id}")
+    c.headers["User-Agent"] = $USER_AGENT
     c.set(:HTTP_VERSION, Curl::HTTP_2_0)                                                                                                       
     c.headers['Cookie'] = @cookies.join('; ')
     c.perform 
