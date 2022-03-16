@@ -7,6 +7,8 @@ $CONFIG_FILE = File.join(__dir__, "config.json")
 
 $USER_AGENT = 'Something'
 
+$debug=false
+
 
 if not File.exist?($CONFIG_FILE)
   raise Exception.new("please copy config.json.template to config.json and fill it to your needs")
@@ -32,14 +34,15 @@ class VRubChat
     c.username = @username
     c.password = @password
     #c.verbose = true
-    c.set(:HTTP_VERSION, Curl::HTTP_2_0)                                                                                                       
+    c.set(:HTTP_VERSION, Curl::HTTP_2_0)
     c.headers["User-Agent"] = $USER_AGENT
-    c.perform 
-    _, *http_headers = c.header_str.split(/[\r\n]+/).map(&:strip)                                                                       
-    @cookies = http_headers.map{|x| x[/set-cookie: ([^;]+); Path=\//i,1]}.compact
+    c.perform
+    _, *http_headers = c.header_str.split(/[\r\n]+/).map(&:strip)
+    @cookies = http_headers.map{|x| x[/set-cookie: ([^;]+);( Max-Age=\d+;)? Path=\//i,1]}.compact
 
     @logged_in = true
     @data = JSON.parse(c.body_str)
+    pp @data if $debug
     @friends = @data["friends"]
     @online_friends = @data["onlineFriends"]
     @offline_friends = @data["offlineFriends"]
