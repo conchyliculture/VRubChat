@@ -53,9 +53,19 @@ class VRubChat
     login() unless @logged_in
     c = Curl.get("https://vrchat.com/api/1/users/#{user_id}?apiKey=#{@apikey}&userId=#{user_id}")
     c.headers["User-Agent"] = $USER_AGENT
-    c.set(:HTTP_VERSION, Curl::HTTP_2_0)                                                                                                       
+    c.set(:HTTP_VERSION, Curl::HTTP_2_0)
     c.headers['Cookie'] = @cookies.join('; ')
-    c.perform 
+    c.perform
+    return JSON.parse(c.body_str)
+  end
+
+  def world_info(world_id)
+    login() unless @logged_in
+    c = Curl.get("https://vrchat.com/api/1/worlds/#{world_id}?apiKey=#{@apikey}")
+    c.headers["User-Agent"] = $USER_AGENT
+    c.set(:HTTP_VERSION, Curl::HTTP_2_0)
+    c.headers['Cookie'] = @cookies.join('; ')
+    c.perform
     return JSON.parse(c.body_str)
   end
 end
@@ -74,12 +84,13 @@ end
 
 
 client.friends.each do |friend|
-  threads << Thread.new(friend, friends_info) do |friend, friends_info| 
-    infos = client.user_info(friend) 
+  threads << Thread.new(friend, friends_info) do |friend, friends_info|
+    infos = client.user_info(friend)
     friends_mutex.synchronize {friends_info << infos}
   end
 end
 threads.each(&:join)
 
-online_peeps = friends_info.select{|x| ["online"].include?(x["state"])}.map{|x| x["displayName"] + " is " + x["state"]}
+online_infos = friends_info.select{|x| ["online"].include?(x["state"])}
+online_peeps = online_infos.map{|x| x["displayName"] + " is " + x["state"] + "in" + client.world_info(x["worldId"])["name"]}
 online_peeps.each {|x| puts x}
